@@ -17,6 +17,14 @@ interface CreateStoreFormData {
   productCategory: string;
   websiteUrl: string;
   subdomain: string;
+  // Shipping policies
+  defaultIsCodAllowed: boolean;
+  defaultIsReturnable: boolean;
+  defaultShippingLocalCost: number;
+  defaultShippingRegionalCost: number;
+  defaultShippingNationalCost: number;
+  defaultDeliveryMinDays: number;
+  defaultDeliveryMaxDays: number;
 }
 
 const PRODUCT_CATEGORIES = [
@@ -45,7 +53,15 @@ export default function CreateStorePage() {
     storeLogoUrl: '',
     productCategory: 'FASHION',
     websiteUrl: '',
-    subdomain: ''
+    subdomain: '',
+    // Shipping policy defaults
+    defaultIsCodAllowed: true,
+    defaultIsReturnable: true,
+    defaultShippingLocalCost: 0,
+    defaultShippingRegionalCost: 0,
+    defaultShippingNationalCost: 0,
+    defaultDeliveryMinDays: 2,
+    defaultDeliveryMaxDays: 7
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -60,6 +76,19 @@ export default function CreateStorePage() {
     setSuccess(null);
 
     try {
+      // Construct shipping costs object
+      const shippingCost = (formData.defaultShippingLocalCost > 0 || formData.defaultShippingRegionalCost > 0 || formData.defaultShippingNationalCost > 0) ? {
+        local: formData.defaultShippingLocalCost,
+        regional: formData.defaultShippingRegionalCost,
+        national: formData.defaultShippingNationalCost
+      } : null;
+
+      // Construct delivery range object
+      const deliveryRange = {
+        minDays: formData.defaultDeliveryMinDays,
+        maxDays: formData.defaultDeliveryMaxDays
+      };
+
       const response = await apiClient.post('/admin/stores/create', {
         storeName: formData.storeName,
         email: formData.email,
@@ -72,7 +101,12 @@ export default function CreateStorePage() {
         storeLogoUrl: formData.storeLogoUrl || undefined,
         productCategory: formData.productCategory,
         websiteUrl: formData.websiteUrl || undefined,
-        subdomain: formData.subdomain || undefined
+        subdomain: formData.subdomain || undefined,
+        // Shipping policies
+        defaultIsCodAllowed: formData.defaultIsCodAllowed,
+        defaultIsReturnable: formData.defaultIsReturnable,
+        defaultShippingCost: shippingCost,
+        defaultEstimatedDeliveryDays: deliveryRange
       });
 
       if (response.data.success) {
@@ -145,7 +179,14 @@ export default function CreateStorePage() {
                     storeLogoUrl: '',
                     productCategory: 'FASHION',
                     websiteUrl: '',
-                    subdomain: ''
+                    subdomain: '',
+                    defaultIsCodAllowed: true,
+                    defaultIsReturnable: true,
+                    defaultShippingLocalCost: 0,
+                    defaultShippingRegionalCost: 0,
+                    defaultShippingNationalCost: 0,
+                    defaultDeliveryMinDays: 2,
+                    defaultDeliveryMaxDays: 7
                   });
                 }}
                 className="flex-1 bg-gray-200 text-gray-700 px-6 py-3 rounded-lg font-medium hover:bg-gray-300"
@@ -378,6 +419,142 @@ export default function CreateStorePage() {
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     placeholder="Brief description of the store..."
                   />
+                </div>
+              </div>
+            </div>
+
+            {/* Shipping Policies */}
+            <div>
+              <h2 className="text-lg font-semibold text-gray-900 mb-4">Shipping Policies (Defaults)</h2>
+              <div className="space-y-4">
+                {/* Business Policies */}
+                <div className="bg-gray-50 p-4 rounded-lg space-y-4">
+                  <h3 className="font-medium text-gray-700">Business Policies</h3>
+
+                  <label className="flex items-center gap-3 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      name="defaultIsReturnable"
+                      checked={formData.defaultIsReturnable}
+                      onChange={(e) => setFormData(prev => ({ ...prev, defaultIsReturnable: e.target.checked }))}
+                      className="w-5 h-5 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
+                    />
+                    <div>
+                      <span className="text-sm font-medium text-gray-700">Accept Returns</span>
+                      <p className="text-xs text-gray-500">Allow customers to return products within 7 days</p>
+                    </div>
+                  </label>
+
+                  <label className="flex items-center gap-3 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      name="defaultIsCodAllowed"
+                      checked={formData.defaultIsCodAllowed}
+                      onChange={(e) => setFormData(prev => ({ ...prev, defaultIsCodAllowed: e.target.checked }))}
+                      className="w-5 h-5 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
+                    />
+                    <div>
+                      <span className="text-sm font-medium text-gray-700">Cash on Delivery (COD)</span>
+                      <p className="text-xs text-gray-500">Allow customers to pay on delivery</p>
+                    </div>
+                  </label>
+                </div>
+
+                {/* Shipping Costs */}
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <h3 className="font-medium text-gray-700 mb-3">Shipping Charges</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Local (₹)
+                      </label>
+                      <input
+                        type="number"
+                        name="defaultShippingLocalCost"
+                        value={formData.defaultShippingLocalCost}
+                        onChange={(e) => setFormData(prev => ({ ...prev, defaultShippingLocalCost: parseFloat(e.target.value) || 0 }))}
+                        min="0"
+                        step="0.01"
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        placeholder="0"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Regional (₹)
+                      </label>
+                      <input
+                        type="number"
+                        name="defaultShippingRegionalCost"
+                        value={formData.defaultShippingRegionalCost}
+                        onChange={(e) => setFormData(prev => ({ ...prev, defaultShippingRegionalCost: parseFloat(e.target.value) || 0 }))}
+                        min="0"
+                        step="0.01"
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        placeholder="0"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        National (₹)
+                      </label>
+                      <input
+                        type="number"
+                        name="defaultShippingNationalCost"
+                        value={formData.defaultShippingNationalCost}
+                        onChange={(e) => setFormData(prev => ({ ...prev, defaultShippingNationalCost: parseFloat(e.target.value) || 0 }))}
+                        min="0"
+                        step="0.01"
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        placeholder="0"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Delivery Timeframe */}
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <h3 className="font-medium text-gray-700 mb-3">Delivery Timeframe</h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Minimum Days
+                      </label>
+                      <input
+                        type="number"
+                        name="defaultDeliveryMinDays"
+                        value={formData.defaultDeliveryMinDays}
+                        onChange={(e) => setFormData(prev => ({ ...prev, defaultDeliveryMinDays: parseInt(e.target.value) || 2 }))}
+                        min="1"
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        placeholder="2"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Maximum Days
+                      </label>
+                      <input
+                        type="number"
+                        name="defaultDeliveryMaxDays"
+                        value={formData.defaultDeliveryMaxDays}
+                        onChange={(e) => setFormData(prev => ({ ...prev, defaultDeliveryMaxDays: parseInt(e.target.value) || 7 }))}
+                        min="1"
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        placeholder="7"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <p className="text-sm text-blue-800">
+                    <strong>Note:</strong> These are default policies for all products from this store.
+                    Products without specific policies will inherit these defaults.
+                  </p>
                 </div>
               </div>
             </div>
