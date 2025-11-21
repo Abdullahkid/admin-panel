@@ -82,10 +82,12 @@ export default function ProductImportPage() {
 
   const fetchStores = async () => {
     try {
-      const response = await apiClient.get('/admin/stores?pageSize=100');
-      setStores(response.data || []);
+      const response = await apiClient.get('/admin/stores?limit=100');
+      // Response structure: { stores: [...], total, page, limit, hasMore }
+      setStores(response.data.stores || []);
     } catch (err) {
       console.error('Failed to fetch stores:', err);
+      setStores([]); // Set empty array on error
     } finally {
       setLoadingStores(false);
     }
