@@ -17,6 +17,16 @@ interface CreateStoreFormData {
   productCategory: string;
   websiteUrl: string;
   subdomain: string;
+  // Address fields (optional)
+  addressLine1: string;
+  addressLine2: string;
+  city: string;
+  state: string;
+  pincode: string;
+  // Tax/GST information (optional)
+  gstNumber: string;
+  sellerRegistrationType: 'GST_REGISTERED' | 'ENROLLMENT_BASED';
+  enrollmentNumber: string;
   // Shipping policies
   defaultIsCodAllowed: boolean;
   defaultIsReturnable: boolean;
@@ -54,6 +64,16 @@ export default function CreateStorePage() {
     productCategory: 'FASHION',
     websiteUrl: '',
     subdomain: '',
+    // Address fields (optional)
+    addressLine1: '',
+    addressLine2: '',
+    city: '',
+    state: '',
+    pincode: '',
+    // Tax/GST information (optional)
+    gstNumber: '',
+    sellerRegistrationType: 'GST_REGISTERED',
+    enrollmentNumber: '',
     // Shipping policy defaults
     defaultIsCodAllowed: true,
     defaultIsReturnable: true,
@@ -102,11 +122,24 @@ export default function CreateStorePage() {
         productCategory: formData.productCategory,
         websiteUrl: formData.websiteUrl || undefined,
         subdomain: formData.subdomain || undefined,
+        // Address fields (send if provided)
+        addressLine1: formData.addressLine1 || undefined,
+        addressLine2: formData.addressLine2 || undefined,
+        city: formData.city || undefined,
+        state: formData.state || undefined,
+        pincode: formData.pincode || undefined,
+        // Tax/GST information (send if provided)
+        gstNumber: formData.gstNumber || undefined,
+        sellerRegistrationType: formData.gstNumber ? formData.sellerRegistrationType : undefined,
+        enrollmentNumber: formData.enrollmentNumber || undefined,
         // Shipping policies
         defaultIsCodAllowed: formData.defaultIsCodAllowed,
         defaultIsReturnable: formData.defaultIsReturnable,
-        defaultShippingCost: shippingCost,
-        defaultEstimatedDeliveryDays: deliveryRange
+        defaultShippingLocalCost: formData.defaultShippingLocalCost || undefined,
+        defaultShippingRegionalCost: formData.defaultShippingRegionalCost || undefined,
+        defaultShippingNationalCost: formData.defaultShippingNationalCost || undefined,
+        defaultDeliveryMinDays: formData.defaultDeliveryMinDays || undefined,
+        defaultDeliveryMaxDays: formData.defaultDeliveryMaxDays || undefined
       });
 
       if (response.data.success) {
@@ -180,6 +213,14 @@ export default function CreateStorePage() {
                     productCategory: 'FASHION',
                     websiteUrl: '',
                     subdomain: '',
+                    addressLine1: '',
+                    addressLine2: '',
+                    city: '',
+                    state: '',
+                    pincode: '',
+                    gstNumber: '',
+                    sellerRegistrationType: 'GST_REGISTERED',
+                    enrollmentNumber: '',
                     defaultIsCodAllowed: true,
                     defaultIsReturnable: true,
                     defaultShippingLocalCost: 0,
@@ -350,6 +391,149 @@ export default function CreateStorePage() {
                     placeholder="https://store-website.com"
                   />
                 </div>
+              </div>
+            </div>
+
+            {/* Address Information (Optional) */}
+            <div>
+              <h2 className="text-lg font-semibold text-gray-900 mb-4">
+                Address Information <span className="text-sm font-normal text-gray-500">(Optional)</span>
+              </h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Address Line 1
+                  </label>
+                  <input
+                    type="text"
+                    name="addressLine1"
+                    value={formData.addressLine1}
+                    onChange={handleChange}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="Street address, building number"
+                  />
+                </div>
+
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Address Line 2
+                  </label>
+                  <input
+                    type="text"
+                    name="addressLine2"
+                    value={formData.addressLine2}
+                    onChange={handleChange}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="Apartment, suite, floor (optional)"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    City
+                  </label>
+                  <input
+                    type="text"
+                    name="city"
+                    value={formData.city}
+                    onChange={handleChange}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="e.g., Mumbai"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    State
+                  </label>
+                  <input
+                    type="text"
+                    name="state"
+                    value={formData.state}
+                    onChange={handleChange}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="e.g., Maharashtra"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    PIN Code
+                  </label>
+                  <input
+                    type="text"
+                    name="pincode"
+                    value={formData.pincode}
+                    onChange={handleChange}
+                    maxLength={6}
+                    pattern="[0-9]{6}"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="e.g., 400001"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* GST/Tax Information (Optional) */}
+            <div>
+              <h2 className="text-lg font-semibold text-gray-900 mb-4">
+                GST/Tax Information <span className="text-sm font-normal text-gray-500">(Optional)</span>
+              </h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Seller Registration Type
+                  </label>
+                  <select
+                    name="sellerRegistrationType"
+                    value={formData.sellerRegistrationType}
+                    onChange={handleChange}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  >
+                    <option value="GST_REGISTERED">GST Registered</option>
+                    <option value="ENROLLMENT_BASED">Enrollment Based</option>
+                  </select>
+                  <p className="text-sm text-gray-500 mt-1">
+                    Select GST Registered for businesses with GST number
+                  </p>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    GST Number
+                  </label>
+                  <input
+                    type="text"
+                    name="gstNumber"
+                    value={formData.gstNumber}
+                    onChange={handleChange}
+                    maxLength={15}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="e.g., 22AAAAA0000A1Z5"
+                  />
+                  <p className="text-sm text-gray-500 mt-1">
+                    15-character GST identification number
+                  </p>
+                </div>
+
+                {formData.sellerRegistrationType === 'ENROLLMENT_BASED' && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Enrollment Number
+                    </label>
+                    <input
+                      type="text"
+                      name="enrollmentNumber"
+                      value={formData.enrollmentNumber}
+                      onChange={handleChange}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      placeholder="Enrollment certificate number"
+                    />
+                    <p className="text-sm text-gray-500 mt-1">
+                      For sellers under composition scheme
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
 
